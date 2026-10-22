@@ -1,4 +1,4 @@
-import path from 'node:path';
+import path from 'node:path';1
 import { createInterface } from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 import makeWASocket, {
