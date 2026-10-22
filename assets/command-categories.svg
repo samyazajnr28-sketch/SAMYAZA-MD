@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="SAMYAZA-MD command categories overview">
+  <defs>
+    <linearGradient id="pageBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1613"/>
+      <stop offset="100%" stop-color="#102a23"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="520" fill="url(#pageBg)"/>
+
+  <text x="50" y="52" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="27" font-weight="700" fill="#25d366">Command Categories</text>
+  <text x="50" y="78" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="15" fill="#8fbca8">219 commands load from 218 of 288 plugin files, across 22 categories</text>
+
+  <g font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+    <rect x="50" y="108" width="270" height="58" rx="12" fill="#0f5f4f" stroke="#25d366" stroke-width="1.2"/>
+    <text x="72" y="134" font-size="16" font-weight="700" fill="#ffffff">Download</text>
+    <text x="72" y="154" font-size="13" fill="#9fd4b6">media, video, audio</text>
+    <text x="298" y="145" font-size="24" font-weight="800" fill="#25d366" text-anchor="end">25</text>
+
+    <rect x="340" y="108" width="270" height="58" rx="12" fill="#0f5f4f" stroke="#25d366" stroke-width="1.2"/>
+    <text x="362" y="134" font-size="16" font-weight="700" fill="#ffffff">Tools</text>
+    <text x="362" y="154" font-size="13" fill="#9fd4b6">utilities and helpers</text>
+    <text x="588" y="145" font-size="24" font-weight="800" fill="#25d366" text-anchor="end">24</text>
+
+    <rect x="630" y="108" width="270" height="58" rx="12" fill="#0f5f4f" stroke="#25d366" stroke-width="1.2"/>
+    <text x="652" y="134" font-size="16" font-weight="700" fill="#ffffff">Owner</text>
+    <text x="652" y="154" font-size="13" fill="#9fd4b6">owner-only controls</text>
+    <text x="878" y="145" font-size="24" font-weight="800" fill="#25d366" text-anchor="end">22</text>
+
+    <rect x="920" y="108" width="230" height="58" rx="12" fill="#0f5f4f" stroke="#25d366" stroke-width="1.2"/>
+    <text x="942" y="134" font-size="16" font-weight="700" fill="#ffffff">Group Admin</text>
+    <text x="942" y="154" font-size="13" fill="#9fd4b6">moderation</text>
+    <text x="1128" y="145" font-size="24" font-weight="800" fill="#25d366" text-anchor="end">19</text>
+
+    <rect x="50" y="180" width="270" height="58" rx="12" fill="#0d5044" stroke="#1f9c6d" stroke-width="1.2"/>
+    <text x="72" y="206" font-size="16" font-weight="700" fill="#ffffff">Group</text>
+    <text x="72" y="226" font-size="13" fill="#9fd4b6">group management</text>
+    <text x="298" y="217" font-size="24" font-weight="800" fill="#8ff0b4" text-anchor="end">13</text>
+
+    <rect x="340" y="180" width="270" height="58" rx="12" fill="#0d5044" stroke="#1f9c6d" stroke-width="1.2"/>
+    <text x="362" y="206" font-size="16" font-weight="700" fill="#ffffff">Info</text>
+    <text x="362" y="226" font-size="13" fill="#9fd4b6">lookup and details</text>
+    <text x="588" y="217" font-size="24" font-weight="800" fill="#8ff0b4" text-anchor="end">12</text>
+
+    <rect x="630" y="180" width="270" height="58" rx="12" fill="#0d5044" stroke="#1f9c6d" stroke-width="1.2"/>
+    <text x="652" y="206" font-size="16" font-weight="700" fill="#ffffff">Automation</text>
+    <text x="652" y="226" font-size="13" fill="#9fd4b6">auto-read, typing</text>
+    <text x="878" y="217" font-size="24" font-weight="800" fill="#8ff0b4" text-anchor="end">11</text>
+
+    <rect x="920" y="180" width="230" height="58" rx="12" fill="#0d5044" stroke="#1f9c6d" stroke-width="1.2"/>
+    <text x="942" y="206" font-size="16" font-weight="700" fill="#ffffff">Audio</text>
+    <text x="942" y="226" font-size="13" fill="#9fd4b6">FFmpeg</text>
+    <text x="1128" y="217" font-size="24" font-weight="800" fill="#8ff0b4" text-anchor="end">11</text>
+  </g>
+</svg>
