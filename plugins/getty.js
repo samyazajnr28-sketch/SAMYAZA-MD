@@ -1,0 +1,40 @@
+import axios from "axios";
+var getty_default = {
+  command: "getty",
+  aliases: ["gettyvideo", "gettydl"],
+  category: "download",
+  description: "Download video or image from Getty Images",
+  usage: ".getty <Getty URL>",
+  async handler(sock, message, args, context) {
+    const chatId = context.chatId || message.key.remoteJid;
+    const url = args?.[0];
+    if (!url) {
+      return await sock.sendMessage(chatId, { text: "Please provide a Getty URL.\nExample: .getty https://www.gettyimages.com/detail/video/482277170" }, { quoted: message });
+    }
+    try {
+      const apiUrl = `https://discardapi.dpdns.org/api/dl/getty?apikey=guru&url=${encodeURIComponent(url)}`;
+      const { data } = await axios.get(apiUrl, { timeout: 1e4 });
+      if (!data?.status || !data.result?.length) {
+        return await sock.sendMessage(chatId, { text: "\u274C No video found for this URL." }, { quoted: message });
+      }
+      const videoUrl = data.result[0].video;
+      const imageUrl = data.result[0].image;
+      if (imageUrl) {
+        await sock.sendMessage(chatId, { image: { url: imageUrl }, caption: "\u{1F5BC}\uFE0F Getty Thumbnail" }, { quoted: message });
+      }
+      if (videoUrl) {
+        await sock.sendMessage(chatId, { video: { url: videoUrl }, caption: "\u{1F3AC} Getty Video" }, { quoted: message });
+      }
+    } catch (error) {
+      console.error("Getty plugin error:", error);
+      if (error.code === "ECONNABORTED") {
+        await sock.sendMessage(chatId, { text: "\u274C Request timed out. The API may be slow or unreachable." }, { quoted: message });
+      } else {
+        await sock.sendMessage(chatId, { text: "\u274C Failed to fetch Getty video." }, { quoted: message });
+      }
+    }
+  }
+};
+export {
+  getty_default as default
+};

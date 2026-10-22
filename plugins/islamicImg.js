@@ -1,0 +1,25 @@
+import axios from "axios";
+var islamicImg_default = {
+  command: "islamic",
+  aliases: ["islampic", "muslimpic"],
+  category: "images",
+  description: "Get a random Islamic image",
+  usage: ".islamic",
+  async handler(sock, message, args, context) {
+    const chatId = context.chatId || message.key.remoteJid;
+    try {
+      const res = await axios.get("https://raw.githubusercontent.com/GlobalTechInfo/Database/main/images/islamic.json");
+      if (!res.data || !Array.isArray(res.data) || res.data.length === 0) {
+        return await sock.sendMessage(chatId, { text: "\u274C Failed to fetch image." }, { quoted: message });
+      }
+      const randomImage = res.data[Math.floor(Math.random() * res.data.length)];
+      await sock.sendMessage(chatId, { image: { url: randomImage }, caption: "\u{1F54C} Islamic Image" }, { quoted: message });
+    } catch (err) {
+      console.error("Islamic image plugin error:", err);
+      await sock.sendMessage(chatId, { text: "\u274C Error while fetching image." }, { quoted: message });
+    }
+  }
+};
+export {
+  islamicImg_default as default
+};

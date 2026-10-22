@@ -1,0 +1,56 @@
+import axios from "axios";
+const AI_APIS = [
+  (q) => `https://mistral.stacktoy.workers.dev/?apikey=Suhail&text=${encodeURIComponent(q)}`,
+  (q) => `https://llama.gtech-apiz.workers.dev/?apikey=Suhail&text=${encodeURIComponent(q)}`,
+  (q) => `https://mistral.gtech-apiz.workers.dev/?apikey=Suhail&text=${encodeURIComponent(q)}`
+];
+const askAI = async (query) => {
+  for (const apiUrl of AI_APIS) {
+    try {
+      const { data } = await axios.get(apiUrl(query), { timeout: 15e3 });
+      const response = data?.data?.response;
+      if (response && typeof response === "string" && response.trim()) {
+        return response.trim();
+      }
+    } catch {
+      continue;
+    }
+  }
+  throw new Error("All AI APIs failed");
+};
+var ai_llama_default = {
+  command: "llama",
+  aliases: ["ai", "chat", "ask"],
+  category: "ai",
+  description: "Ask a question to AI",
+  usage: ".llama <question>",
+  async handler(sock, message, args, context) {
+    const chatId = context.chatId;
+    const query = args.join(" ").trim();
+    if (!query) {
+      return sock.sendMessage(
+        chatId,
+        { text: `\u{1F916} *AI Assistant*
+
+Usage: \`.llama <your question>\`
+Example: \`.llama explain quantum physics\`` },
+        { quoted: message }
+      );
+    }
+    try {
+      await sock.sendMessage(chatId, { react: { text: "\u{1F916}", key: message.key } });
+      const answer = await askAI(query);
+      await sock.sendMessage(chatId, { text: answer }, { quoted: message });
+    } catch (error) {
+      console.error("AI Command Error:", error.message);
+      await sock.sendMessage(
+        chatId,
+        { text: "\u274C Failed to get AI response. Please try again later." },
+        { quoted: message }
+      );
+    }
+  }
+};
+export {
+  ai_llama_default as default
+};

@@ -1,0 +1,52 @@
+var hack_default = {
+  command: "hack",
+  aliases: ["fakehack", "prankhack"],
+  category: "fun",
+  description: "Simulate a hack sequence (fun prank)",
+  usage: ".hack <target>",
+  /**
+   * @param {object} sock - Baileys sock
+   * @param {object} message - the original message object
+   * @param {Array} args - command arguments
+   * @param {object} context - additional context
+   */
+  async handler(sock, message, args, context) {
+    const chatId = context.chatId || message.key.remoteJid;
+    const target = args?.[0] || "target";
+    try {
+      await sock.sendMessage(chatId, { text: "*\u{1F4BB} Initializing hack sequence...*" }, { quoted: message });
+      await delay(1500);
+      await sock.sendMessage(chatId, { text: "*\u{1F50C} Establishing secure connection to the server...*" }, { quoted: message });
+      await delay(1500);
+      await sock.sendMessage(chatId, { text: "*\u{1F6E1} Bypassing firewalls and security protocols...*" }, { quoted: message });
+      await displayProgressBar(sock, message, "Bypassing firewalls", 4, chatId);
+      await sock.sendMessage(chatId, { text: "*\u{1F510} Gaining access to encrypted database...*" }, { quoted: message });
+      await delay(2e3);
+      await sock.sendMessage(chatId, { text: "*\u{1F511} Cracking encryption keys...*" }, { quoted: message });
+      await displayProgressBar(sock, message, "Cracking encryption", 6, chatId);
+      await sock.sendMessage(chatId, { text: "*\u{1F4E5} Downloading sensitive data from server...*" }, { quoted: message });
+      await displayProgressBar(sock, message, "Downloading files", 5, chatId);
+      await sock.sendMessage(chatId, { text: "*\u{1F512} Planting a backdoor for future access...*" }, { quoted: message });
+      await delay(2500);
+      await sock.sendMessage(chatId, { text: `*\u{1F4A5} Hack complete! \u{1F3AF} Target "${target}" successfully compromised.*` }, { quoted: message });
+      await delay(1e3);
+      await sock.sendMessage(chatId, { text: "*\u{1F916} Mission accomplished. Logging off...*" }, { quoted: message });
+    } catch (error) {
+      console.error("Error in hack sequence:", error);
+      await sock.sendMessage(chatId, { text: "*\u26A0\uFE0F An error occurred during the hack sequence. Please try again later.*" }, { quoted: message });
+    }
+  }
+};
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+async function displayProgressBar(sock, message, taskName, steps, chatId) {
+  const progressBarLength = 20;
+  for (let i = 1; i <= steps; i++) {
+    const progress = Math.round(i / steps * progressBarLength);
+    const bar = "\u2588".repeat(progress) + "\u2591".repeat(progressBarLength - progress);
+    await sock.sendMessage(chatId, { text: `*${taskName}:* [${bar}]` }, { quoted: message });
+    await delay(1e3);
+  }
+}
+export {
+  hack_default as default
+};
