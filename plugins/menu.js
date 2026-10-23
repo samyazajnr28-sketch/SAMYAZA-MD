@@ -52,7 +52,8 @@ function groupCommands(commands) {
     const grouped = new Map();
 
     for (const command of commands.values()) {
-        const category = command.category || 'General';
+        const rawCategory = String(command.category || 'General').trim();
+        const category = rawCategory.toLowerCase() === 'download' ? 'Downloads' : rawCategory;
         if (!grouped.has(category)) grouped.set(category, []);
         grouped.get(category).push(command);
     }

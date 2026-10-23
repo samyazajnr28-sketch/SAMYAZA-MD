@@ -1,4 +1,4 @@
-import { igdl } from "ruhend-scraper";
+import { igdl, igdl2 } from "ruhend-scraper";
 const processedMessages = /* @__PURE__ */ new Set();
 var instagram_default = {
   command: "instagram",
@@ -37,23 +37,40 @@ var instagram_default = {
     }
     try {
       await sock.sendMessage(chatId, { react: { text: "\u{1F504}", key: message.key } });
-      const res = await igdl(parsedUrl.toString()).catch((error) => {
-        console.error("Instagram scraper request failed:", error.message);
-        return null;
-      });
+      const isReel = /^\/(?:reel|reels|tv|share)\//i.test(parsedUrl.pathname);
+      let res = null;
+      let lastError;
+      for (const scraper of [igdl, igdl2]) {
+        if (typeof scraper !== "function") continue;
+        try {
+          res = await scraper(parsedUrl.toString());
+          if (res?.data?.length) break;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      if (!res?.data?.length && lastError) {
+        console.error("Instagram scraper request failed:", lastError.message);
+      }
       if (!res?.data || !Array.isArray(res.data) || res.data.length === 0) {
         return await sock.sendMessage(chatId, {
           text: "\u274C Could not retrieve media. The link might be private or broken."
         }, { quoted: message });
       }
       const mediaList = res.data.filter(
-        (item, index, self) => item?.url && self.findIndex((t) => t.url === item.url) === index
+        (item, index, self) => {
+          const url = item?.url || item?.download_url || item?.video || item?.image;
+          return url && self.findIndex((candidate) =>
+            (candidate?.url || candidate?.download_url || candidate?.video || candidate?.image) === url
+          ) === index;
+        }
       ).slice(0, 5);
       for (const media of mediaList) {
         try {
-          const isVideo = media.type === "video" || /mp4|mov|webm/i.test(media.url);
+          const mediaUrl = media.url || media.download_url || media.video || media.image;
+          const isVideo = isReel || String(media.type || "").toLowerCase() === "video" || /\.(?:mp4|mov|webm)(?:$|\?)/i.test(mediaUrl);
           await sock.sendMessage(chatId, {
-            [isVideo ? "video" : "image"]: { url: media.url },
+            [isVideo ? "video" : "image"]: { url: mediaUrl },
             ...isVideo ? { mimetype: "video/mp4" } : {},
             caption: "\u{1F4E5} *Downloaded by SAMYAZA-MD*\nOnly share media you own or have permission to reuse."
           }, { quoted: message });

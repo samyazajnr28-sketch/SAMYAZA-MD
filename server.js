@@ -32,7 +32,8 @@ commandHandler.aliases = new Map();
 commandHandler.categories = new Map();
 for (const command of commands.values()) {
     for (const alias of command.aliases || []) commandHandler.aliases.set(alias.toLowerCase(), command.name);
-    const category = command.category || 'general';
+    const rawCategory = String(command.category || 'general').trim();
+    const category = rawCategory.toLowerCase() === 'download' ? 'Downloads' : rawCategory;
     if (!commandHandler.categories.has(category)) commandHandler.categories.set(category, []);
     commandHandler.categories.get(category).push(command);
 }
