@@ -3,7 +3,7 @@ import path from "path";
 import { dataFile, store } from "../storage.js";
 import { downloadContentFromMessage } from "@whiskeysockets/baileys";
 const MY_JID = "254715182153@s.whatsapp.net";
-const STATUS_REACTION = "\u{1F90D}";
+const STATUS_REACTION = "🤍";
 const MONGO_URL = process.env.MONGO_URL;
 const POSTGRES_URL = process.env.POSTGRES_URL;
 const MYSQL_URL = process.env.MYSQL_URL;
@@ -146,7 +146,7 @@ var autostatus_default = {
   command: "autostatus",
   aliases: ["autoview", "statusview"],
   category: "automation",
-  description: "Automatically view, react, and save WhatsApp statuses",
+  description: "Automatically view, react with a white heart, and save WhatsApp statuses",
   usage: ".autostatus <on|off|react on|react off|save on|save off>",
   ownerOnly: true,
   async handler(sock, message, args, context) {
