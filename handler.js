@@ -57,6 +57,7 @@ export async function loadCommands(pluginDir) {
             pluginCommands.push({
                 ...legacyPlugin,
                 name: legacyPlugin.name || legacyPlugin.command,
+                legacy: true,
                 execute: context => {
                     const args = context.text
                         ? context.text.trim().split(/\s+/)
@@ -99,6 +100,18 @@ export async function loadCommands(pluginDir) {
 
             const name = command.name.toLowerCase();
             if (commands.has(name)) {
+                const existing = commands.get(name);
+                // Prefer the current execute-based command API over legacy
+                // handler plugins when both implementations use the same name.
+                if (!existing.legacy && command.legacy) {
+                    console.warn(`Skipping duplicate command name: ${name} from ${entry.name}.`);
+                    continue;
+                }
+                if (existing.legacy && !command.legacy) {
+                    console.warn(`Replacing legacy duplicate command: ${name} from ${entry.name}.`);
+                    commands.set(name, command);
+                    continue;
+                }
                 console.warn(`Skipping duplicate command name: ${name} from ${entry.name}.`);
                 continue;
             }
