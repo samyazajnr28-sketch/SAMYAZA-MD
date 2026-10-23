@@ -108,7 +108,6 @@ export async function loadCommands(pluginDir) {
                     continue;
                 }
                 if (existing.legacy && !command.legacy) {
-                    console.warn(`Replacing legacy duplicate command: ${name} from ${entry.name}.`);
                     commands.set(name, command);
                     continue;
                 }

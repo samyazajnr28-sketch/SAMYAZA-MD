@@ -8,24 +8,39 @@ var instagram_default = {
   usage: ".ig <public Instagram link> (only media you own or may reuse)",
   async handler(sock, message, args, context) {
     const chatId = context.chatId || message.key.remoteJid;
-    const text = args.join(" ") || message.message?.conversation || message.message?.extendedTextMessage?.text;
+    const input = args.join(" ") || message.message?.conversation || message.message?.extendedTextMessage?.text || "";
     if (processedMessages.has(message.key.id)) return;
     processedMessages.add(message.key.id);
     setTimeout(() => processedMessages.delete(message.key.id), 3e5);
-    if (!text) {
+    if (!input) {
       return await sock.sendMessage(chatId, {
         text: "\u{1F4F8} *Instagram Downloader*\n\nUsage:\n.ig <public post | reel | video link>\nOnly download media you own or have permission to reuse."
       }, { quoted: message });
     }
-    const igRegex = /https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(p|reel|tv)\/[a-zA-Z0-9_-]+/i;
-    if (!igRegex.test(text)) {
+    // Accept post, reel, reels, TV, story, and share URLs, including query strings.
+    const urlMatch = input.match(/https?:\/\/(?:www\.|m\.)?(?:instagram\.com|instagr\.am)\/[^\s<>]+/i);
+    const instagramUrl = urlMatch?.[0]?.replace(/[),\]}]+$/, "");
+    let parsedUrl;
+    try {
+      parsedUrl = instagramUrl ? new URL(instagramUrl) : null;
+    } catch {
+      parsedUrl = null;
+    }
+    const isInstagramHost = parsedUrl
+      && /(^|\.)instagram\.com$|(^|\.)instagr\.am$/i.test(parsedUrl.hostname);
+    const hasMediaPath = parsedUrl
+      && /^\/(?:p|reel|reels|tv|stories|share)\//i.test(parsedUrl.pathname);
+    if (!parsedUrl || !isInstagramHost || !hasMediaPath) {
       return await sock.sendMessage(chatId, {
         text: "\u274C Invalid link. Please send a valid Instagram post, reel, or video URL."
       }, { quoted: message });
     }
     try {
       await sock.sendMessage(chatId, { react: { text: "\u{1F504}", key: message.key } });
-      const res = await igdl(text).catch(() => null);
+      const res = await igdl(parsedUrl.toString()).catch((error) => {
+        console.error("Instagram scraper request failed:", error.message);
+        return null;
+      });
       if (!res?.data || !Array.isArray(res.data) || res.data.length === 0) {
         return await sock.sendMessage(chatId, {
           text: "\u274C Could not retrieve media. The link might be private or broken."

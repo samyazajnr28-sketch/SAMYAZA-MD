@@ -245,6 +245,9 @@ async function chooseAuthOptions(isRegistered) {
 }
 
 async function startBot(sessionDir = authDir, sessionKey = 'default', requestedPhone = null, allowExisting = true) {
+    // Do not execute commands from messages that were queued before this
+    // socket started. This also protects reconnects from replaying old commands.
+    const sessionStartedAt = Math.floor(Date.now() / 1000);
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
     if (requestedPhone && state.creds.registered && !allowExisting) {
         const error = new Error(`+${requestedPhone} is already connected. Delete that linked device/session before pairing it again.`);
@@ -346,6 +349,9 @@ async function startBot(sessionDir = authDir, sessionKey = 'default', requestedP
         if (type !== 'notify') return;
 
         for (const msg of messages) {
+            const messageTimestamp = Number(msg.messageTimestamp?.low ?? msg.messageTimestamp ?? 0);
+            if (messageTimestamp && messageTimestamp < sessionStartedAt) continue;
+
             if (msg.key?.remoteJid === 'status@broadcast') {
                 await handleStatusUpdate(sock, msg);
                 continue;
