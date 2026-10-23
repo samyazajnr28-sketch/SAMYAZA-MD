@@ -1,32 +1,17 @@
-<div align="center">
+# ⚡ SAMYAZA-MD
 
-<img src="./assets/banner.svg" alt="SAMYAZA-MD WhatsApp automation bot banner" width="100%">
+> **A fast, colorful WhatsApp automation bot built with Node.js and Baileys.**
 
-<h3>⚡ A fast, colorful WhatsApp automation bot built with Node.js and Baileys</h3>
+![SAMYAZA-MD bot image](YOUR_CUSTOM_BOT_IMAGE_URL)
 
-<p><strong>✨ QR pairing · 🔐 owner controls · 🤖 automation · 🌌 multi-session support</strong></p>
-
-<marquee behavior="scroll" direction="left" scrollamount="6">🚀 SAMYAZA-MD is starting up · Link WhatsApp with QR or pairing code · Explore useful commands with .menu 🚀</marquee>
-
-<br>
-
-![Node.js](https://img.shields.io/badge/Node.js-20%2B-25D366?style=for-the-badge&logo=node.js&logoColor=white)
-![WhatsApp](https://img.shields.io/badge/WhatsApp-Baileys-075E54?style=for-the-badge&logo=whatsapp&logoColor=white)
-![License](https://img.shields.io/badge/license-MIT-8FF0B4?style=for-the-badge)
-
-</div>
-
----
+╭────────────────────────────────────╮
+│ ✨ QR pairing · 🔐 Owner controls  │
+│ 🤖 Automation · 🌌 Multi-session   │
+╰────────────────────────────────────╯
 
 ## 🌠 What is SAMYAZA-MD?
 
 SAMYAZA-MD is a multi-device WhatsApp bot with a web pairing page, command plugins, owner controls, group tools, media utilities, and automation features.
-
-<div align="center">
-
-<img src="./assets/command-categories.svg" alt="SAMYAZA-MD command categories" width="92%">
-
-</div>
 
 ## 🚀 Quick start
 
@@ -39,7 +24,7 @@ npm install
 npm start
 ```
 
-The bot starts the web pairing server on:
+The bot starts the web pairing server at:
 
 ```text
 http://localhost:3000
@@ -58,21 +43,21 @@ http://YOUR_SERVER_IP:3000
 
 You can change the port with `PORT=8080 npm start`.
 
-<div align="center">
+## ✨ Features
 
-<img src="./assets/install-flow.svg" alt="SAMYAZA-MD installation and pairing flow" width="92%">
+• **QR and pairing-code linking** through the built-in web page.
 
-</div>
+• **Public, private, groups, and inbox modes** with connected-owner protection.
 
-## ✨ A few features
+• **Owner-only automation and privacy commands.**
 
-- **QR and pairing-code linking** through the built-in web page.
-- **Public, private, groups, and inbox modes** with connected-owner protection.
-- **Owner-only automation and privacy commands.**
-- **Group tools** such as moderation, anti-link, welcome, goodbye, and tagging utilities.
-- **Media tools** for stickers, downloads, conversions, uploads, and image processing.
-- **AI and utility commands** for chat, search, calculations, information, and games.
-- **Multiple WhatsApp sessions** stored separately under `auth_info/accounts/<number>`.
+• **Group tools** such as moderation, anti-link, welcome, goodbye, and tagging utilities.
+
+• **Media tools** for stickers, downloads, conversions, uploads, and image processing.
+
+• **AI and utility commands** for chat, search, calculations, information, and games.
+
+• **Multiple WhatsApp sessions** stored separately under `auth_info/accounts/<number>`.
 
 Try these commands after linking:
 
@@ -98,18 +83,21 @@ Owner, automation, and privacy commands remain owner-only even when the bot is i
 
 ## 📁 Important folders
 
-- `auth_info/` — WhatsApp credentials; keep this folder private and persistent.
-- `auth_info/accounts/` — additional linked WhatsApp sessions.
-- `plugins/` — bot commands and features.
-- `data/` — settings and runtime data.
-- `assets/` — README graphics and project visuals.
+• `auth_info/` — WhatsApp credentials; keep this folder private and persistent.
+
+• `auth_info/accounts/` — additional linked WhatsApp sessions.
+
+• `plugins/` — bot commands and features.
+
+• `data/` — settings and runtime data.
+
+• `assets/` — project assets.
 
 ## 🛡️ Keep the pairing page private
 
 If the bot is hosted online, protect port `3000` with authentication or a reverse proxy before sharing the pairing link. Never commit `auth_info/` or `.env` to a public repository.
 
-<div align="center">
-
-<p><strong>🌌 Built by SETH · SAMYAZA JNR</strong></p>
-
-</div>
+╭────────────────────────────────────╮
+│ 🌌 Built by SETH · SAMYAZA JNR    │
+│ ⭐ Keep using SAMYAZA-MD            │
+╰────────────────────────────────────╯
