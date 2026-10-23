@@ -125,7 +125,35 @@ refresh(); setInterval(refresh, 2000);
 const canvas = document.querySelector('#starfield'), ctx = canvas.getContext('2d');
 let stars = [];
 function resizeStars() { canvas.width = innerWidth * devicePixelRatio; canvas.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); stars = Array.from({length: Math.min(150, Math.floor(innerWidth / 8))}, () => ({ x: Math.random() * innerWidth, y: Math.random() * innerHeight, r: Math.random() * 1.8 + .3, v: Math.random() * .35 + .08, phase: Math.random() * 7 })); }
-function drawStars(time = 0) { const w = innerWidth, h = innerHeight; ctx.clearRect(0, 0, w, h); for (const star of stars) { star.y -= star.v; if (star.y < -4) { star.y = h + 4; star.x = Math.random() * w; } const glow = .35 + Math.sin(time / 700 + star.phase) * .25; ctx.beginPath(); ctx.fillStyle = 'rgba(99, 236, 255, ' + glow + ')'; ctx.shadowBlur = 10; ctx.shadowColor = '#31e6ff'; ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2); ctx.fill(); } ctx.shadowBlur = 0; requestAnimationFrame(drawStars); }
+function drawStars(time = 0) {
+    const w = innerWidth, h = innerHeight;
+    ctx.clearRect(0, 0, w, h);
+    for (const star of stars) {
+        star.y -= star.v;
+        star.x += Math.sin(time / 2400 + star.phase) * .08;
+        if (star.y < -4) { star.y = h + 4; star.x = Math.random() * w; }
+    }
+    ctx.lineWidth = .7;
+    for (let i = 0; i < stars.length; i += 1) {
+        for (let j = i + 1; j < stars.length; j += 1) {
+            const a = stars[i], b = stars[j], dx = a.x - b.x, dy = a.y - b.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance > 145) continue;
+            const alpha = (1 - distance / 145) * .32;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(74, 205, 255, ' + alpha + ')';
+            ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+    }
+    for (const star of stars) {
+        const glow = .35 + Math.sin(time / 700 + star.phase) * .25;
+        ctx.beginPath(); ctx.fillStyle = 'rgba(99, 236, 255, ' + glow + ')';
+        ctx.shadowBlur = 10; ctx.shadowColor = '#31e6ff';
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    requestAnimationFrame(drawStars);
+}
 resizeStars(); addEventListener('resize', resizeStars); requestAnimationFrame(drawStars);
 </script></body></html>`;
 

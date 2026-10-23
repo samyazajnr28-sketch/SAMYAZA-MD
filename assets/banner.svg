@@ -1,45 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="SAMYAZA-MD - WhatsApp Automation Bot">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-label="SAMYAZA-MD galaxy technology banner">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0a3d2c"/>
-      <stop offset="50%" stop-color="#075e54"/>
-      <stop offset="100%" stop-color="#04211a"/>
+    <linearGradient id="space" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#02040d"/><stop offset=".48" stop-color="#07142d"/><stop offset="1" stop-color="#13051f"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#25d366"/>
-      <stop offset="100%" stop-color="#8ff0b4"/>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#55e7ff"/><stop offset=".32" stop-color="#8d7bff"/><stop offset=".65" stop-color="#ff6fd8"/><stop offset="1" stop-color="#ffd166"/>
     </linearGradient>
-    <linearGradient id="bubble" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#3ce07a"/>
-      <stop offset="100%" stop-color="#128c7e"/>
-    </linearGradient>
+    <radialGradient id="nebula"><stop stop-color="#6b5cff" stop-opacity=".28"/><stop offset="1" stop-color="#6b5cff" stop-opacity="0"/></radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="22"/></filter>
   </defs>
 
-  <rect width="1200" height="300" fill="url(#bg)"/>
-  <circle cx="1050" cy="40" r="150" fill="#25d366" opacity="0.10"/>
-  <circle cx="1150" cy="270" r="120" fill="#25d366" opacity="0.08"/>
-  <circle cx="120" cy="280" r="90" fill="#25d366" opacity="0.07"/>
+  <rect width="1200" height="340" rx="24" fill="url(#space)"/>
+  <ellipse cx="1000" cy="40" rx="330" ry="220" fill="url(#nebula)" filter="url(#soft)"/>
+  <ellipse cx="160" cy="310" rx="280" ry="180" fill="#00d9ff" opacity=".08" filter="url(#soft)"/>
 
-  <g transform="translate(78,92)">
-    <path d="M0 0 h96 a26 26 0 0 1 26 26 v58 a26 26 0 0 1 -26 26 h-56 l-30 24 v-24 h-10 a26 26 0 0 1 -26 -26 v-58 a26 26 0 0 1 26 -26 z" fill="url(#bubble)"/>
-    <rect x="26" y="26" width="14" height="62" rx="6" fill="#04211a" opacity="0.85"/>
-    <rect x="47" y="26" width="14" height="62" rx="6" fill="#04211a" opacity="0.85"/>
-    <rect x="68" y="26" width="14" height="40" rx="6" fill="#04211a" opacity="0.85"/>
+  <g stroke-linecap="round" opacity=".42" filter="url(#glow)">
+    <path d="M40 80 180 150 285 70 420 128 540 45 680 125 810 60 950 148 1160 80" stroke="#38d9ff" stroke-width="1.4" fill="none"/>
+    <path d="M20 270 170 205 300 282 430 215 570 292 710 205 850 275 1010 190 1180 255" stroke="#b56cff" stroke-width="1.2" fill="none"/>
+    <path d="M180 150 170 205M285 70 300 282M420 128 430 215M540 45 570 292M680 125 710 205M810 60 850 275M950 148 1010 190" stroke="#ff71d1" stroke-width="1" fill="none"/>
+  </g>
+  <g fill="#fff" filter="url(#glow)">
+    <circle cx="40" cy="80" r="2"/><circle cx="180" cy="150" r="3" fill="#55e7ff"/><circle cx="285" cy="70" r="2" fill="#ffd166"/><circle cx="420" cy="128" r="2" fill="#ff6fd8"/><circle cx="540" cy="45" r="3" fill="#8d7bff"/><circle cx="680" cy="125" r="2" fill="#55e7ff"/><circle cx="810" cy="60" r="3" fill="#ffd166"/><circle cx="950" cy="148" r="2" fill="#ff6fd8"/><circle cx="1160" cy="80" r="2"/><circle cx="170" cy="205" r="2"/><circle cx="300" cy="282" r="3" fill="#55e7ff"/><circle cx="570" cy="292" r="2" fill="#ffd166"/><circle cx="850" cy="275" r="3" fill="#ff6fd8"/><circle cx="1010" cy="190" r="2" fill="#8d7bff"/>
+  </g>
+  <g fill="#bdefff" opacity=".85">
+    <circle cx="90" cy="40" r="1"/><circle cx="225" cy="35" r="1.5"/><circle cx="370" cy="245" r="1"/><circle cx="740" cy="35" r="1"/><circle cx="1080" cy="230" r="1.5"/><circle cx="1140" cy="145" r="1"/><circle cx="620" cy="250" r="1"/>
   </g>
 
-  <text x="240" y="128" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="66" font-weight="800" fill="url(#accent)" letter-spacing="1">SAMYAZA-MD</text>
-  <text x="242" y="172" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="25" font-weight="500" fill="#dff5e8">WhatsApp Automation Bot &#183; Multi-device (Baileys)</text>
-
-  <g font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="19" font-weight="600" fill="#04211a">
-    <rect x="242" y="200" width="168" height="38" rx="19" fill="#25d366"/>
-    <text x="326" y="225" text-anchor="middle">Node.js 20+</text>
-    <rect x="424" y="200" width="128" height="38" rx="19" fill="#8ff0b4"/>
-    <text x="488" y="225" text-anchor="middle">ESM</text>
-    <rect x="566" y="200" width="146" height="38" rx="19" fill="#25d366"/>
-    <text x="639" y="225" text-anchor="middle">219 Commands</text>
-    <rect x="726" y="200" width="168" height="38" rx="19" fill="#8ff0b4"/>
-    <text x="810" y="225" text-anchor="middle">288 Plugins</text>
-  </g>
-
-  <text x="242" y="272" font-family="'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="16" fill="#9fd4b6">Developed by SETH (SAMYAZA JNR) &#183; https://github.com/samyazajnr28-sketch/SAMYAZA-MD</text>
+  <text x="600" y="154" text-anchor="middle" font-family="Orbitron, Segoe UI, sans-serif" font-size="70" font-weight="800" letter-spacing="3" fill="url(#title)" filter="url(#glow)">SAMYAZA-MD</text>
+  <text x="600" y="194" text-anchor="middle" font-family="Space Grotesk, Segoe UI, sans-serif" font-size="23" fill="#d9e9ff">WhatsApp Automation Bot · Multi-device · Galaxy powered</text>
+  <text x="600" y="243" text-anchor="middle" font-family="Space Grotesk, Segoe UI, sans-serif" font-size="18" fill="#8feaff">
+    <animate attributeName="opacity" values=".3;1;.3" dur="2.8s" repeatCount="indefinite"/>
+    ✦ CONNECT · AUTOMATE · EXPLORE ✦
+  </text>
+  <text x="600" y="298" text-anchor="middle" font-family="Space Grotesk, Segoe UI, sans-serif" font-size="16" fill="#a9b9e8">
+    <animate attributeName="x" values="600;625;600;575;600" dur="8s" repeatCount="indefinite"/>
+    Scan the QR · Enter a pairing code · Let your commands travel across the stars
+  </text>
 </svg>
