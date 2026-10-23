@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { createServer } from 'node:http';
-import { readdir } from 'node:fs/promises';
+import { readdir, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import makeWASocket, {
     DisconnectReason,
@@ -41,6 +41,23 @@ const sessions = new Map();
 
 function normalizePhone(value) {
     return String(value || '').replace(/\D/g, '');
+}
+
+async function clearAuthSession(sessionDir, sessionKey) {
+    if (sessionKey !== 'default') {
+        await rm(sessionDir, { recursive: true, force: true });
+        return;
+    }
+
+    // Keep auth_info/accounts so logging out one number never removes other sessions.
+    let entries = [];
+    try { entries = await readdir(sessionDir, { withFileTypes: true }); } catch (error) {
+        if (error.code === 'ENOENT') return;
+        throw error;
+    }
+    await Promise.all(entries
+        .filter(entry => entry.name !== 'accounts')
+        .map(entry => rm(path.join(sessionDir, entry.name), { recursive: true, force: true })));
 }
 let webState = {
     status: 'starting',
@@ -295,7 +312,24 @@ async function startBot(sessionDir = authDir, sessionKey = 'default', requestedP
             const statusCode = lastDisconnect?.error?.output?.statusCode;
             if (statusCode === DisconnectReason.loggedOut) {
                 sessions.delete(sessionKey);
-                console.error('WhatsApp logged out. Remove auth_info and restart to pair again.');
+                await clearAuthSession(sessionDir, sessionKey);
+                const phoneLabel = requestedPhone ? ` +${requestedPhone}` : '';
+                console.error(`WhatsApp logged out${phoneLabel}. Session credentials were cleared automatically.`);
+                webState = {
+                    ...webState,
+                    status: 'needs_pairing',
+                    pairingCode: null,
+                    message: requestedPhone
+                        ? `Session +${requestedPhone} was logged out and cleared. Request a new pairing code.`
+                        : 'Session was logged out and cleared. A fresh QR code will appear shortly.'
+                };
+                if (sessionKey === 'default') {
+                    setTimeout(() => {
+                        startBot(sessionDir, sessionKey, null, true).catch(error => {
+                            console.error('Could not restart cleared session:', error);
+                        });
+                    }, 1000);
+                }
                 return;
             }
 
