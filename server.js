@@ -1,11 +1,12 @@
-import path from 'node:path';1
-import { createInterface } from 'node:readline/promises';
+import path from 'node:path';
+import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import makeWASocket, {
     DisconnectReason,
     useMultiFileAuthState
 } from '@whiskeysockets/baileys';
 import pino from 'pino';
+import QRCode from 'qrcode';
 import qrcode from 'qrcode-terminal';
 import CONFIG from './config.js';
 import { getMessageText, handleMessage, loadCommands } from './handler.js';
@@ -24,50 +25,137 @@ const pluginDir = path.join(rootDir, 'plugins');
 const logger = pino({ level: CONFIG.LOG_LEVEL || 'silent' });
 
 const commands = await loadCommands(pluginDir);
-let selectedAuthOptions;
+let socket;
+let webState = {
+    status: 'starting',
+    qr: null,
+    pairingCode: null,
+    message: 'Starting WhatsApp…'
+};
+
+const webPage = `<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SAMYAZA-MD pairing</title>
+    <style>
+        :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+        * { box-sizing: border-box; }
+        body { position: relative; isolation: isolate; overflow-x: hidden; margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; background: #071014; color: #f4f7f9; }
+        body::before, body::after { content: ''; position: fixed; z-index: -1; width: 520px; height: 520px; border-radius: 50%; filter: blur(70px); opacity: .38; pointer-events: none; animation: float 12s ease-in-out infinite alternate; }
+        body::before { top: -190px; left: -160px; background: #00e676; }
+        body::after { right: -190px; bottom: -220px; background: #2979ff; animation-delay: -5s; }
+        body { background-image: linear-gradient(#ffffff08 1px, transparent 1px), linear-gradient(90deg, #ffffff08 1px, transparent 1px), radial-gradient(circle at 50% 0%, #123d40 0, transparent 52%); background-size: 42px 42px, 42px 42px, 100% 100%; }
+        @keyframes float { to { transform: translate3d(35px, 24px, 0) scale(1.12); } }
+        main { position: relative; width: min(92vw, 560px); padding: clamp(24px, 5vw, 38px); border: 1px solid #ffffff1c; border-radius: 26px; background: linear-gradient(145deg, #172a2be8, #101b25e8); box-shadow: 0 30px 90px #0009, inset 0 1px #ffffff18; backdrop-filter: blur(22px); transition: transform .35s ease, box-shadow .35s ease; }
+        main:hover { transform: translateY(-4px); box-shadow: 0 38px 100px #000b, 0 0 50px #00e67616, inset 0 1px #ffffff24; }
+        h1 { margin: 0; letter-spacing: -.04em; font-size: clamp(30px, 7vw, 44px); background: linear-gradient(90deg, #fff, #7fffc0); -webkit-background-clip: text; background-clip: text; color: transparent; } p { color: #b6c2ca; line-height: 1.5; }
+        .tabs { display: flex; gap: 10px; margin: 24px 0 16px; } button { cursor: pointer; border: 1px solid transparent; border-radius: 12px; padding: 12px 17px; font-weight: 750; background: linear-gradient(135deg, #4dff9a, #19c968); color: #06140b; box-shadow: 0 8px 20px #00d76528; transition: transform .22s ease, box-shadow .22s ease, filter .22s ease, background .22s ease; }
+        button:hover { transform: translateY(-3px); filter: brightness(1.12); box-shadow: 0 12px 28px #00e67655; } button:active { transform: translateY(0) scale(.97); } button:focus-visible, input:focus-visible { outline: 3px solid #4dff9a88; outline-offset: 3px; }
+        button.secondary { background: #ffffff0b; border-color: #ffffff1c; color: #f4f7f9; box-shadow: none; } button.secondary:hover { background: #ffffff18; box-shadow: 0 10px 24px #0004; }
+        input { width: 100%; box-sizing: border-box; padding: 14px 15px; border: 1px solid #ffffff22; border-radius: 12px; background: #071218aa; color: inherit; font-size: 16px; transition: border-color .22s ease, box-shadow .22s ease, background .22s ease; } input:hover { border-color: #ffffff45; background: #071218dd; } input:focus { border-color: #4dff9a; box-shadow: 0 0 0 4px #4dff9a1c, 0 8px 22px #0004; }
+        .panel { padding: 20px; border: 1px solid #ffffff1c; border-radius: 18px; background: #0712185c; box-shadow: inset 0 1px #ffffff0d; transition: border-color .3s ease, background .3s ease; } .panel:hover { border-color: #4dff9a45; background: #07121880; } .hidden { display: none; }
+        #qr { display: block; width: min(100%, 320px); margin: 18px auto 4px; padding: 8px; border-radius: 15px; background: white; box-shadow: 0 12px 35px #0008; transition: transform .3s ease, box-shadow .3s ease; } #qr:hover { transform: scale(1.025) rotate(.5deg); box-shadow: 0 18px 45px #000a; }
+        #code { font: 700 28px ui-monospace, monospace; letter-spacing: 4px; text-align: center; margin: 20px 0; color: #4dff9a; text-shadow: 0 0 20px #00e67677; }
+        .status { margin-top: 18px; padding: 10px 13px; border-radius: 10px; background: #ffffff0a; color: #d7e5e8; font-size: 14px; } .hint { font-size: 13px; }
+        @media (max-width: 480px) { body { padding: 12px; } .tabs { flex-direction: column; } .tabs button { width: 100%; } main:hover { transform: none; } }
+    </style>
+</head>
+<body><main>
+    <h1>SAMYAZA-MD</h1>
+    <p>Link WhatsApp by scanning the QR code or using a phone-number pairing code.</p>
+    <div class="tabs"><button id="qrTab">QR code</button><button class="secondary" id="pairTab">Pairing code</button></div>
+    <section id="qrPanel" class="panel"><div id="qrMessage">Waiting for a QR code…</div><img id="qr" class="hidden" alt="WhatsApp QR code"></section>
+    <section id="pairPanel" class="panel hidden"><form id="pairForm"><label for="phone">Phone number with country code</label><p class="hint">Use digits only or include +, for example +254700000000.</p><input id="phone" name="phone" required minlength="7" maxlength="16" placeholder="+254700000000"><br><br><button type="submit">Get pairing code</button></form><div id="code"></div><p id="pairMessage"></p></section>
+    <div class="status" id="status">Connecting…</div>
+    <p class="hint">On WhatsApp: Linked devices → Link a device, or Link with phone number.</p>
+</main>
+<script>
+const qrPanel = document.querySelector('#qrPanel'), pairPanel = document.querySelector('#pairPanel');
+const qrTab = document.querySelector('#qrTab'), pairTab = document.querySelector('#pairTab');
+function setTab(tab) {
+    const qrActive = tab === 'qr';
+    qrPanel.classList.toggle('hidden', !qrActive); pairPanel.classList.toggle('hidden', qrActive);
+    qrTab.classList.toggle('secondary', !qrActive); pairTab.classList.toggle('secondary', qrActive);
+}
+qrTab.onclick = () => setTab('qr');
+pairTab.onclick = () => setTab('pair');
+async function refresh() {
+    try {
+        const state = await (await fetch('/api/status')).json();
+        document.querySelector('#status').textContent = state.message || state.status;
+        const qr = document.querySelector('#qr');
+        if (state.qr) { qr.src = state.qr; qr.classList.remove('hidden'); document.querySelector('#qrMessage').textContent = 'Scan this with WhatsApp.'; }
+        else { qr.classList.add('hidden'); }
+        if (state.pairingCode) document.querySelector('#code').textContent = state.pairingCode;
+    } catch { document.querySelector('#status').textContent = 'Web server is waiting for the bot…'; }
+}
+document.querySelector('#pairForm').onsubmit = async event => {
+    event.preventDefault();
+    const message = document.querySelector('#pairMessage'); message.textContent = 'Requesting code…';
+    const response = await fetch('/api/pairing', { method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({ phone: document.querySelector('#phone').value }) });
+    const result = await response.json();
+    message.textContent = result.message || (response.ok ? 'Code generated.' : 'Could not generate a code.');
+    if (result.code) document.querySelector('#code').textContent = result.code;
+};
+refresh(); setInterval(refresh, 2000);
+</script></body></html>`;
+
+function sendJson(response, statusCode, payload) {
+    response.writeHead(statusCode, { 'content-type': 'application/json; charset=utf-8' });
+    response.end(JSON.stringify(payload));
+}
+
+const webServer = createServer(async (request, response) => {
+    if (request.method === 'GET' && request.url === '/') {
+        response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+        response.end(webPage);
+        return;
+    }
+    if (request.method === 'GET' && request.url === '/api/status') {
+        sendJson(response, 200, webState);
+        return;
+    }
+    if (request.method === 'POST' && request.url === '/api/pairing') {
+        let body = '';
+        for await (const chunk of request) body += chunk;
+        try {
+            const phoneNumber = String(JSON.parse(body).phone || '').replace(/\D/g, '');
+            if (phoneNumber.length < 7 || phoneNumber.length > 15) {
+                sendJson(response, 400, { message: 'Enter a valid international phone number (7–15 digits).' });
+                return;
+            }
+            if (!socket) {
+                sendJson(response, 503, { message: 'WhatsApp is still starting. Try again in a moment.' });
+                return;
+            }
+            webState = { ...webState, pairingCode: null, message: 'Generating your pairing code…' };
+            const code = await socket.requestPairingCode(phoneNumber);
+            webState = { ...webState, pairingCode: code, message: 'Enter this code in WhatsApp → Linked devices → Link with phone number.' };
+            sendJson(response, 200, { code, message: webState.message });
+        } catch (error) {
+            console.error('Could not generate a web pairing code:', error);
+            sendJson(response, 500, { message: 'Could not generate a pairing code. Make sure WhatsApp is not already connected.' });
+        }
+        return;
+    }
+    response.writeHead(404); response.end('Not found');
+});
+
+const webPort = Number(process.env.PORT || 3000);
+const webHost = process.env.HOST || '0.0.0.0';
+webServer.listen(webPort, webHost, () => console.log(`Pairing web server: http://localhost:${webPort}`));
 
 async function chooseAuthOptions(isRegistered) {
-    if (isRegistered) return { method: 'qr' };
-    if (selectedAuthOptions) return selectedAuthOptions;
-
-    if (!process.stdin.isTTY || !process.stdout.isTTY) {
-        console.log('No interactive terminal detected; using QR-code linking.');
-        selectedAuthOptions = { method: 'qr' };
-        return selectedAuthOptions;
-    }
-
-    const terminal = createInterface({ input: process.stdin, output: process.stdout });
-    try {
-        console.log('\nChoose how to link WhatsApp:');
-        console.log('1. QR code (default)');
-        console.log('2. Pairing code (enter your phone number with country code)');
-        console.log('On WhatsApp, open Linked devices > Link a device.');
-        const choice = (await terminal.question('Choose 1 or 2: ')).trim();
-
-        if (choice !== '2' && choice.toLowerCase() !== 'pair' && choice.toLowerCase() !== 'pairing') {
-            selectedAuthOptions = { method: 'qr' };
-            return selectedAuthOptions;
-        }
-
-        while (true) {
-            const input = await terminal.question('Phone number with country code (for example, +254700000000): ');
-            const phoneNumber = input.replace(/\D/g, '');
-            if (phoneNumber.length >= 7 && phoneNumber.length <= 15) {
-                selectedAuthOptions = { method: 'pairing', phoneNumber };
-                return selectedAuthOptions;
-            }
-            console.log('Enter a valid international phone number (7–15 digits).');
-        }
-    } finally {
-        terminal.close();
-    }
+    return { method: 'qr' };
 }
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState(authDir);
     const authOptions = await chooseAuthOptions(state.creds.registered);
     let onlinePresenceInterval;
-    const sock = makeWASocket({
+    socket = makeWASocket({
         auth: state,
         logger,
         printQRInTerminal: false
@@ -75,7 +163,7 @@ async function startBot() {
     const refreshOnlinePresence = () => {
         try {
             if (getAutomationSettings().alwaysonline) {
-                sock.sendPresenceUpdate('available').catch(error => {
+                socket.sendPresenceUpdate('available').catch(error => {
                     console.error('Could not refresh online presence:', error);
                 });
             }
@@ -84,6 +172,7 @@ async function startBot() {
         }
     };
 
+    const sock = socket;
     sock.ev.on('creds.update', saveCreds);
     sock.ev.on('call', async calls => {
         for (const call of calls) {
@@ -91,14 +180,17 @@ async function startBot() {
         }
     });
 
-    sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
+    sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
         if (qr && authOptions.method === 'qr') {
+            webState = { ...webState, status: 'qr', message: 'Scan the QR code with WhatsApp.' };
+            webState.qr = await QRCode.toDataURL(qr, { width: 320, margin: 1 });
             console.log('Scan this QR code with WhatsApp to connect:');
             console.log('On your phone, open Linked devices > Link a device, then scan it.');
             qrcode.generate(qr, { small: true });
         }
 
         if (connection === 'open') {
+            webState = { ...webState, status: 'connected', qr: null, message: 'WhatsApp connected.' };
             console.log('SAMYAZA-MD connected.');
             refreshOnlinePresence();
             if (!onlinePresenceInterval) {
@@ -107,6 +199,7 @@ async function startBot() {
         }
 
         if (connection === 'close') {
+            webState = { ...webState, status: 'disconnected', message: 'WhatsApp disconnected; reconnecting…' };
             clearInterval(onlinePresenceInterval);
             onlinePresenceInterval = undefined;
             const statusCode = lastDisconnect?.error?.output?.statusCode;
@@ -164,16 +257,6 @@ async function startBot() {
             });
         }
     });
-
-    if (!state.creds.registered && authOptions.method === 'pairing') {
-        try {
-            const pairingCode = await sock.requestPairingCode(authOptions.phoneNumber);
-            console.log(`\nWhatsApp pairing code: ${pairingCode}`);
-            console.log('On your phone, open Linked devices > Link a device > Link with phone number, then enter this code.');
-        } catch (error) {
-            console.error('Could not generate a WhatsApp pairing code:', error);
-        }
-    }
 
     return sock;
 }
