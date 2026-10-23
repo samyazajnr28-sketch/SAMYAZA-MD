@@ -1,6 +1,7 @@
-import pkg from "api-qasim";
-const QasimAny = pkg;
 import axios from "axios";
+const QasimAny = {
+  apksearch: query => axios.get(`https://discardapi.dpdns.org/api/apk/search?apikey=guru&query=${encodeURIComponent(query)}`)
+};
 var android1_default = {
   command: "apkdl",
   aliases: ["apk", "an1apk", "appdl", "app"],

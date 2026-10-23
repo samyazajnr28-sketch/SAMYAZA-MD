@@ -1,4 +1,4 @@
-import simpleGit from "simple-git";
+import { simpleGit } from "simple-git";
 var pull_default = {
   command: "gitpull",
   aliases: ["refresh", "pull"],

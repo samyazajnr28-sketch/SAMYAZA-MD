@@ -1,11 +1,10 @@
 import store from "../lib/lightweight_store.js";
 async function modeCommand(sock, message, args, context) {
   const { chatId, channelInfo } = context;
-  const _senderId = message.key.participant || message.key.remoteJid;
-  const isOwnerOrSudoCheck = message.key.fromMe || context.senderIsOwnerOrSudo || context.isOwnerOrSudoCheck;
-  if (!isOwnerOrSudoCheck) {
+  const isOwner = message.key.fromMe || context.isOwner;
+  if (!isOwner) {
     return await sock.sendMessage(chatId, {
-      text: "\u274C Only the owner or sudo users can change bot mode!",
+      text: "\u274C Only the owner of this connected WhatsApp number can change bot mode!",
       ...channelInfo
     }, { quoted: message });
   }
@@ -21,7 +20,7 @@ async function modeCommand(sock, message, args, context) {
     };
     const modeDescriptions = {
       public: "Everyone can use bot (groups + private chats)",
-      private: "Only owner and sudo users can use bot",
+      private: "Only the owner of this connected WhatsApp number can use bot",
       groups: "Only works in group chats (everyone in groups)",
       inbox: "Only works in private chats (everyone in DMs)",
       self: "Owner and sudo only (same as private)"
@@ -89,7 +88,7 @@ Use \`.mode\` to see all available modes.`,
   };
   const modeMessages = {
     public: "Bot is now accessible to *everyone* in groups and private chats.",
-    private: "Bot is now restricted to *owner and sudo users only*.",
+    private: "Bot is now restricted to *the connected owner only*.",
     groups: "Bot now works *only in group chats* (all group members can use it).",
     inbox: "Bot now works *only in private chats* (all users can DM the bot).",
     self: "Bot is now restricted to *owner and sudo users only*."

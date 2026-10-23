@@ -1,6 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
+import store from './lib/lightweight_store.js';
 
 export function getMessageText(message) {
     let content = message;
@@ -98,7 +99,8 @@ export async function loadCommands(pluginDir) {
 
             const name = command.name.toLowerCase();
             if (commands.has(name)) {
-                throw new Error(`Duplicate command name: ${name}`);
+                console.warn(`Skipping duplicate command name: ${name} from ${entry.name}.`);
+                continue;
             }
             commands.set(name, command);
         }
@@ -133,23 +135,54 @@ export async function handleMessage({ sock, msg, commands, config, onCommandStar
         );
     if (!command) return;
 
-    const sender = msg.key.participant || (msg.key.fromMe ? sock.user?.id : from);
+    const sender = msg.key.participantAlt || msg.key.participant || (msg.key.fromMe ? sock.user?.id : from);
     const normalizeNumber = value => String(value || '')
         .split('@')[0]
         .split(':')[0]
         .replace(/\D/g, '');
-    const configuredOwners = Array.isArray(config.GLOBAL_OWNER)
-        ? config.GLOBAL_OWNER
-        : [config.GLOBAL_OWNER];
-    const senderNumber = normalizeNumber(sender);
+    const senderCandidates = [
+        sender,
+        msg.key.participant,
+        msg.key.participantAlt,
+        msg.key.remoteJid
+    ].map(normalizeNumber).filter(Boolean);
     const connectedNumber = normalizeNumber(sock.user?.id);
-    const isGlobalOwner = Boolean(
-        msg.key.fromMe
-        || (connectedNumber && senderNumber === connectedNumber)
-        || configuredOwners.some(owner =>
-            normalizeNumber(owner) && normalizeNumber(owner) === senderNumber
-        )
+    const isOwner = Boolean(msg.key.fromMe || (connectedNumber && senderCandidates.includes(connectedNumber)));
+    const category = String(command.category || '').toLowerCase();
+    const ownerOnly = Boolean(
+        command.ownerOnly
+        || command.strictOwnerOnly
+        || category === 'owner'
+        || category === 'automation'
+        || category === 'privacy'
     );
+    const botMode = await store.getBotMode();
+    const isGroup = from.endsWith('@g.us');
+
+    if (ownerOnly && !isOwner) {
+        await sock.sendMessage(from, {
+            text: '❌ This command is available only to the owner of this connected WhatsApp number.'
+        }, { quoted: msg });
+        return;
+    }
+
+    if ((botMode === 'private' || botMode === 'self') && !isOwner) {
+        await sock.sendMessage(from, {
+            text: '🔒 This bot is in private mode. Only the connected owner can use it.'
+        }, { quoted: msg });
+        return;
+    }
+
+    if (botMode === 'groups' && !isGroup) {
+        await sock.sendMessage(from, { text: '👥 This bot is currently available in groups only.' }, { quoted: msg });
+        return;
+    }
+
+    if (botMode === 'inbox' && isGroup) {
+        await sock.sendMessage(from, { text: '💬 This bot is currently available in private chats only.' }, { quoted: msg });
+        return;
+    }
+
     const text = args.join(' ');
 
     let cleanupAutomation;
@@ -170,7 +203,10 @@ export async function handleMessage({ sock, msg, commands, config, onCommandStar
             config,
             auteurMessage: sender,
             nomAuteurMessage: msg.pushName || sender,
-            isGlobalOwner
+            isOwner,
+            isGlobalOwner: isOwner,
+            senderIsOwnerOrSudo: isOwner,
+            isOwnerOrSudoCheck: isOwner
         });
     } catch (error) {
         console.error(`Command "${command.name}" failed:`, error);

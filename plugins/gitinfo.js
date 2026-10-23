@@ -1,4 +1,4 @@
-import simpleGit from "simple-git";
+import { simpleGit } from "simple-git";
 var gitinfo_default = {
   command: "gitinfo",
   aliases: ["infogit"],
