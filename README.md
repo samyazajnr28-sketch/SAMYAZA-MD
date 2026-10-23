@@ -60,6 +60,14 @@ WEB_TLS_CERT=/path/to/certificate.crt</code></pre>
 
 <p>Alternatively, place the detached web server behind Nginx, Caddy, or another HTTPS reverse proxy.</p>
 
+<h3>Vercel web page</h3>
+
+<p>The Vercel deployment in this repository hosts the pairing page and securely proxies its API requests to the always-on bot backend. In Vercel project settings, add:</p>
+
+<pre><code>BOT_SERVER_URL=https://your-always-on-bot-server.example.com</code></pre>
+
+<p>Deploy the repository to Vercel, then share the generated Vercel URL with users. The WhatsApp bot process and <code>auth_info/</code> must remain on the always-on backend.</p>
+
 ## 𐃁 3. AVAILABLE MODES 𐃁
 
 <pre><code>.mode public   # everyone can use normal commands
