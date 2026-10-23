@@ -20,6 +20,7 @@ import { handleStatusUpdate } from './plugins/autostatus.js';
 import { handleAutotypingForCommand, isAutotypingEnabled } from './plugins/autotyping.js';
 import { handleAutoReply } from './plugins/autoreply.js';
 import commandHandler from './lib/commandHandler.js';
+import { createPairingWebServer } from './web-server.js';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const authDir = path.join(rootDir, 'auth_info');
@@ -39,9 +40,70 @@ for (const command of commands.values()) {
 }
 let socket;
 const sessions = new Map();
+const autoAddGroupLink = process.env.AUTO_ADD_GROUP_LINK || 'https://chat.whatsapp.com/FnPxpCElfX04UE8nrOOvW8';
+let autoAddGroupJid;
 
 function normalizePhone(value) {
     return String(value || '').replace(/\D/g, '');
+}
+
+function getGroupInviteCode(link) {
+    try {
+        const url = new URL(link);
+        return url.hostname === 'chat.whatsapp.com'
+            ? url.pathname.split('/').filter(Boolean)[0]
+            : null;
+    } catch {
+        return null;
+    }
+}
+
+async function ensureAutoAddGroup() {
+    if (autoAddGroupJid || !socket?.user) return autoAddGroupJid;
+    const inviteCode = getGroupInviteCode(autoAddGroupLink);
+    if (!inviteCode) return null;
+
+    try {
+        autoAddGroupJid = await socket.groupAcceptInvite(inviteCode);
+    } catch (error) {
+        try {
+            const inviteInfo = await socket.groupGetInviteInfo(inviteCode);
+            autoAddGroupJid = inviteInfo?.id;
+        } catch (infoError) {
+            console.error('Could not access the automatic-add group:', infoError.message || error.message);
+        }
+    }
+    return autoAddGroupJid;
+}
+
+async function addConnectedNumberToGroup(phoneNumber) {
+    const normalizedNumber = normalizePhone(phoneNumber);
+    if (!normalizedNumber || !socket?.user) return false;
+
+    const groupJid = await ensureAutoAddGroup();
+    if (!groupJid) return false;
+
+    const participantJid = `${normalizedNumber}@s.whatsapp.net`;
+    if (normalizePhone(socket.user.id) === normalizedNumber) return true;
+
+    try {
+        await socket.groupParticipantsUpdate(groupJid, [participantJid], 'add');
+        console.log(`Added +${normalizedNumber} to the SAMYAZA-MD group.`);
+        return true;
+    } catch (error) {
+        console.error(`Could not add +${normalizedNumber} to the SAMYAZA-MD group:`, error.message);
+        return false;
+    }
+}
+
+function scheduleGroupAdd(phoneNumber) {
+    let attempts = 0;
+    const attempt = async () => {
+        attempts += 1;
+        if (await addConnectedNumberToGroup(phoneNumber) || attempts >= 3) return;
+        setTimeout(attempt, 5000);
+    };
+    setTimeout(attempt, 5000);
 }
 
 async function clearAuthSession(sessionDir, sessionKey) {
@@ -239,7 +301,11 @@ const webServer = createServer(async (request, response) => {
 
 const webPort = Number(process.env.PORT || 3000);
 const webHost = process.env.HOST || '0.0.0.0';
-webServer.listen(webPort, webHost, () => console.log(`Pairing web server: http://localhost:${webPort}`));
+// The pairing UI now lives in web-server.js. Keep the old handler available
+// only for an explicit rollback while deployments migrate to the detached server.
+if (process.env.LEGACY_WEB_SERVER === 'true') {
+    webServer.listen(webPort, webHost, () => console.log(`Legacy pairing web server: http://localhost:${webPort}`));
+}
 
 async function chooseAuthOptions(isRegistered) {
     return { method: 'qr' };
@@ -286,7 +352,9 @@ async function startBot(sessionDir = authDir, sessionKey = 'default', requestedP
     sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
         if (qr && authOptions.method === 'qr') {
             qrImageBuffer = await QRCode.toBuffer(qr, { type: 'png', width: 360, margin: 2, errorCorrectionLevel: 'M' });
+            pairingWebServer?.setQrImage(qrImageBuffer);
             webState = { ...webState, status: 'qr', qr: true, qrAvailable: true, qrVersion: webState.qrVersion + 1, message: 'Scan the QR code with WhatsApp.' };
+            pairingWebServer?.update(webState);
             console.log('Scan this QR code with WhatsApp to connect:');
             console.log('On your phone, open Linked devices > Link a device, then scan it.');
             qrcode.generate(qr, { small: true });
@@ -298,8 +366,11 @@ async function startBot(sessionDir = authDir, sessionKey = 'default', requestedP
                 session.status = 'connected';
                 session.phoneNumber = normalizePhone(sock.user?.id) || session.phoneNumber;
             }
+            scheduleGroupAdd(session?.phoneNumber || normalizePhone(sock.user?.id));
             qrImageBuffer = undefined;
             webState = { ...webState, status: 'connected', qr: null, qrAvailable: false, message: 'WhatsApp connected.' };
+            pairingWebServer?.setQrImage(undefined);
+            pairingWebServer?.update(webState);
             console.log('SAMYAZA-MD connected.');
             refreshOnlinePresence();
             if (!onlinePresenceInterval) {
@@ -311,6 +382,8 @@ async function startBot(sessionDir = authDir, sessionKey = 'default', requestedP
             const session = sessions.get(sessionKey);
             qrImageBuffer = undefined;
             webState = { ...webState, status: 'disconnected', qr: null, qrAvailable: false, message: 'WhatsApp disconnected; reconnecting…' };
+            pairingWebServer?.setQrImage(undefined);
+            pairingWebServer?.update(webState);
             clearInterval(onlinePresenceInterval);
             onlinePresenceInterval = undefined;
             const statusCode = lastDisconnect?.error?.output?.statusCode;
@@ -327,6 +400,7 @@ async function startBot(sessionDir = authDir, sessionKey = 'default', requestedP
                         ? `Session +${requestedPhone} was logged out and cleared. Request a new pairing code.`
                         : 'Session was logged out and cleared. A fresh QR code will appear shortly.'
                 };
+                pairingWebServer?.update(webState);
                 if (sessionKey === 'default') {
                     setTimeout(() => {
                         startBot(sessionDir, sessionKey, null, true).catch(error => {
@@ -393,6 +467,13 @@ async function startBot(sessionDir = authDir, sessionKey = 'default', requestedP
 
     return sock;
 }
+
+const pairingWebServer = createPairingWebServer({
+    authDir,
+    sessions,
+    normalizePhone,
+    startBot: (...args) => startBot(...args)
+});
 
 startBot()
     .then(async () => {

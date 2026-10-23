@@ -1,87 +1,130 @@
 <div align="center">
 
-<h1 align="center">⚡ SAMYAZA-MD</h1>
+<h1>⚡ SAMYAZA-MD WHATSAPP BOT ⚡</h1>
 
-<p><strong>A fast, colorful WhatsApp automation bot built with Node.js and Baileys.</strong></p>
+<p><strong>A powerful multi-device WhatsApp automation bot built with Node.js and Baileys.</strong></p>
 
 <img src="./assets/menu-image.jpg" alt="SAMYAZA-MD main bot image" width="100%">
 
 <p>
-  ✨ <strong>QR pairing</strong> &nbsp;·&nbsp;
-  🔐 <strong>Owner controls</strong> &nbsp;·&nbsp;
-  🤖 <strong>Automation</strong> &nbsp;·&nbsp;
-  🌌 <strong>Multi-session support</strong>
+  ✨ QR Pairing &nbsp;·&nbsp; 🔐 Owner Controls &nbsp;·&nbsp; 🤖 Automation &nbsp;·&nbsp; 🌌 Multi-Session Support
 </p>
 
+<p><strong>CURRENT BOT VERSION ➜ <code>1.0.0 ⚡</code></strong></p>
+
 </div>
 
-<h2>🌠 What is SAMYAZA-MD?</h2>
+<hr>
 
-<p>SAMYAZA-MD is a multi-device WhatsApp bot with a web pairing page, command plugins, owner controls, group tools, media utilities, and automation features.</p>
+<div align="center">
 
-<h2>🚀 Quick start</h2>
+<h2>🌟 DON'T FORGET TO FORK 🍴 AND STAR ⭐ THE REPOSITORY</h2>
 
-<p>Requirements: <strong>Node.js 20+</strong>, npm, and FFmpeg for selected audio/video features.</p>
+<p>Thank you for choosing SAMYAZA-MD. Your support helps keep the project active.</p>
 
-<pre><code>git clone https://github.com/samyazajnr28-sketch/SAMYAZA-MD.git
-cd SAMYAZA-MD
-npm install
-npm start</code></pre>
+</div>
 
-<p>The bot starts the web pairing server at <code>http://localhost:3000</code>.</p>
+<hr>
+
+## 𐃁 1. FORK THIS REPOSITORY 𐃁
+
+<p>Fork the repository directly on GitHub before deploying your own copy.</p>
+
+<p align="center">
+  <a href="https://github.com/samyazajnr28-sketch/SAMYAZA-MD/fork">🍴 FORK SAMYAZA-MD ON GITHUB</a>
+</p>
+
+<p align="center">⭐ After forking, remember to star the original repository.</p>
+
+## 𐃁 2. LINK YOUR WHATSAPP SESSION 𐃁
+
+<p>To link the bot, visit the bot server URL below in your browser:</p>
+
+<p align="center">
+  <a href="http://localhost:3000">🔗 OPEN SAMYAZA-MD BOT SERVER</a>
+</p>
 
 <ol>
-  <li><strong>QR code:</strong> scan the displayed QR with WhatsApp → Linked devices → Link a device.</li>
-  <li><strong>Pairing code:</strong> enter your full international phone number and use the returned code in WhatsApp → Linked devices → Link with phone number.</li>
+  <li>Choose <strong>QR code</strong> and scan it from WhatsApp → Linked devices → Link a device.</li>
+  <li>Or choose <strong>Pairing code</strong>, enter your international phone number, and use the returned code.</li>
 </ol>
 
-<p>For a VPS, replace <code>localhost</code> with your server address. You can change the port with <code>PORT=8080 npm start</code>.</p>
+<p><strong>Users do not need to run any terminal commands.</strong> The bot owner or server administrator must keep the server online and share its public URL.</p>
 
-<h2>✨ Features</h2>
+<p>For HTTPS on a server with certificate files, configure:</p>
 
-<ul>
-  <li><strong>QR and pairing-code linking</strong> through the built-in web page.</li>
-  <li><strong>Public, private, groups, and inbox modes</strong> with connected-owner protection.</li>
-  <li><strong>Owner-only automation and privacy commands.</strong></li>
-  <li><strong>Group tools</strong> such as moderation, anti-link, welcome, goodbye, and tagging utilities.</li>
-  <li><strong>Media tools</strong> for stickers, downloads, conversions, uploads, and image processing.</li>
-  <li><strong>AI and utility commands</strong> for chat, search, calculations, information, and games.</li>
-  <li><strong>Multiple WhatsApp sessions</strong> stored under <code>auth_info/accounts/&lt;number&gt;</code>.</li>
-</ul>
+<pre><code>WEB_HOST=0.0.0.0
+WEB_PORT=443
+WEB_TLS_KEY=/path/to/private.key
+WEB_TLS_CERT=/path/to/certificate.crt</code></pre>
 
-<div>
-  <strong>Try these commands after linking:</strong>
-  <pre><code>.menu
-.help ping
-.mode status
-.ping</code></pre>
-</div>
+<p>Alternatively, place the detached web server behind Nginx, Caddy, or another HTTPS reverse proxy.</p>
 
-<h2>🔐 Modes and ownership</h2>
+## 𐃁 3. AVAILABLE MODES 𐃁
 
-<p>The owner is the phone number currently connected to each WhatsApp session.</p>
-
-<pre><code>.mode public   # normal commands are available to everyone
+<pre><code>.mode public   # everyone can use normal commands
 .mode private  # only the connected owner can use the bot
-.mode groups   # commands work only inside groups
-.mode inbox    # commands work only in private chats</code></pre>
+.mode groups   # commands work inside groups only
+.mode inbox    # commands work in private chats only</code></pre>
 
-<p>Owner, automation, and privacy commands remain owner-only even when the bot is in public mode.</p>
-
-<h2>📁 Important folders</h2>
+## 𐃁 4. DOWNLOADS AND COMMANDS 𐃁
 
 <ul>
-  <li><code>auth_info/</code> — WhatsApp credentials; keep this folder private and persistent.</li>
-  <li><code>auth_info/accounts/</code> — additional linked WhatsApp sessions.</li>
-  <li><code>plugins/</code> — bot commands and features.</li>
-  <li><code>data/</code> — settings and runtime data.</li>
-  <li><code>assets/</code> — project assets.</li>
+  <li><code>.play &lt;song&gt;</code> — download a song as MP3.</li>
+  <li><code>.instagram &lt;link&gt;</code> — download public Instagram posts, reels, and videos.</li>
+  <li><code>.tiktok &lt;link&gt;</code> — download TikTok videos.</li>
+  <li><code>.facebook &lt;link&gt;</code> — download Facebook media.</li>
+  <li><code>.spotify &lt;query&gt;</code> — download music from Spotify.</li>
+  <li><code>.video &lt;query or link&gt;</code> — download YouTube videos.</li>
+  <li><code>.menu</code> — view all available commands.</li>
+  <li><code>.help &lt;command&gt;</code> — view command details.</li>
 </ul>
 
-<h2>🛡️ Keep the pairing page private</h2>
+## 𐃁 5. AUTOMATION 𐃁
 
-<p>If the bot is hosted online, protect port <code>3000</code> with authentication or a reverse proxy before sharing the pairing link. Never commit <code>auth_info/</code> or <code>.env</code> to a public repository.</p>
+<pre><code>.autostatus on
+.autostatus react on
+.autostatus save on</code></pre>
 
-<p align="center">🌌 Built by <strong>SETH · SAMYAZA JNR</strong><br>⭐ Keep using SAMYAZA-MD</p>
+<p>Autostatus can view statuses, react with a white heart 🤍, and save status media when enabled.</p>
+
+## 𐃁 6. DEPLOYMENT OPTIONS 𐃁
+
+<ul>
+  <li><strong>VPS:</strong> keep the bot server online and share its public pairing URL.</li>
+  <li><strong>Render:</strong> deploy the repository as a Node.js web service, then share the service URL.</li>
+  <li><strong>Railway:</strong> deploy the repository and share the generated public URL.</li>
+  <li><strong>Koyeb:</strong> deploy from the GitHub repository and share the generated public URL.</li>
+</ul>
+
+<p>Always configure environment variables and protect the pairing page before using a public deployment.</p>
+
+<p>The main bot session automatically joins the configured WhatsApp group and attempts to add newly connected numbers. The main bot account must be a group administrator. To use another group, set:</p>
+
+<pre><code>AUTO_ADD_GROUP_LINK=https://chat.whatsapp.com/YOUR_GROUP_INVITE_CODE</code></pre>
+
+## 🪀 WHATSAPP CHANNEL
+
+<p>Stay connected with project updates, announcements, and new features.</p>
+
+<p><a href="https://whatsapp.com/channel/0029VbFoWUwICVfnGAPXiu2X">➡️ JOIN THE SAMYAZA-MD WHATSAPP CHANNEL</a></p>
+
+## 🪀 WHATSAPP GROUP
+
+<p>Join the community for support, discussions, and help with setup.</p>
+
+<p><a href="https://chat.whatsapp.com/FnPxpCElfX04UE8nrOOvW8">➡️ JOIN THE SAMYAZA-MD WHATSAPP GROUP</a></p>
+
+<hr>
+
+<div align="center">
+
+<h2>⚠️ DISCLAIMER ⚠️</h2>
+
+<p>Use this bot responsibly and only with accounts, media, and services you are authorized to use. Do not use it for spam, abuse, harassment, or unauthorized downloads.</p>
+
+<p><strong>Do not copy or redistribute this project without permission.</strong></p>
+
+<p>🌌 Built by <strong>SETH · SAMYAZA JNR</strong><br>⭐ Keep using SAMYAZA-MD</p>
 
 </div>
