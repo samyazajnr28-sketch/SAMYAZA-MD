@@ -1,5 +1,8 @@
 {
   "global": {
-    "botMode": "public"
+    "botMode": "public",
+    "autoReaction": {
+      "enabled": true
+    }
   }
 }
