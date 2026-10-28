@@ -10,7 +10,7 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.7.18",
+    "@whiskeysockets/baileys": "^6.7.24",
     "acrcloud": "^1.4.0",
     "api-qasim": "^4.0.2",
     "axios": "^1.7.9",
