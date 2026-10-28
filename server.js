@@ -304,6 +304,9 @@ const webHost = process.env.HOST || '0.0.0.0';
 // The pairing UI now lives in web-server.js. Keep the old handler available
 // only for an explicit rollback while deployments migrate to the detached server.
 if (process.env.LEGACY_WEB_SERVER === 'true') {
+    if (process.env.ALLOW_LEGACY_HTTP !== 'true') {
+        throw new Error('The legacy pairing server is HTTP-only. Use the secure pairing server, or explicitly set ALLOW_LEGACY_HTTP=true for local development.');
+    }
     webServer.listen(webPort, webHost, () => console.log(`Legacy pairing web server: http://localhost:${webPort}`));
 }
 

@@ -21,22 +21,55 @@ const c=q('#space'),x=c.getContext('2d');let stars=[];function resize(){c.width=
 export function createPairingWebServer({ authDir, sessions, normalizePhone, startBot }) {
     let state = { status: 'starting', qr: null, qrAvailable: false, qrVersion: 0, pairingCode: null, message: 'Starting WhatsApp…' };
     let qrImageBuffer;
-    const json = (response, statusCode, payload) => { response.writeHead(statusCode, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); response.end(JSON.stringify(payload)); };
+    const keyFile = process.env.WEB_TLS_KEY;
+    const certFile = process.env.WEB_TLS_CERT;
+    const pfxFile = process.env.WEB_TLS_PFX;
+    const pfxPassword = process.env.WEB_TLS_PFX_PASSWORD;
+    const tlsRequired = process.env.WEB_TLS_REQUIRED !== 'false';
+    const hasPemFiles = Boolean(keyFile && certFile && fs.existsSync(keyFile) && fs.existsSync(certFile));
+    const hasPfxFile = Boolean(pfxFile && fs.existsSync(pfxFile));
+    const hasTlsFiles = hasPemFiles || hasPfxFile;
+    if (tlsRequired && !hasTlsFiles) {
+        throw new Error('HTTPS is required. Set WEB_TLS_KEY/WEB_TLS_CERT or WEB_TLS_PFX to existing certificate files, or explicitly set WEB_TLS_REQUIRED=false for local development.');
+    }
+    const secure = hasTlsFiles;
+    const securityHeaders = {
+        'x-content-type-options': 'nosniff',
+        'x-frame-options': 'DENY',
+        'referrer-policy': 'no-referrer',
+        'permissions-policy': 'camera=(), microphone=(), geolocation=()'
+    };
+    if (secure) securityHeaders['strict-transport-security'] = 'max-age=31536000; includeSubDomains';
+    const json = (response, statusCode, payload) => { response.writeHead(statusCode, { ...securityHeaders, 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); response.end(JSON.stringify(payload)); };
     const serverHandler = async (request, response) => {
+        for (const [name, value] of Object.entries(securityHeaders)) response.setHeader(name, value);
         const requestUrl = new URL(request.url || '/', 'http://localhost');
         if (request.method === 'GET' && requestUrl.pathname === '/') { response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); response.end(page); return; }
         if (request.method === 'GET' && requestUrl.pathname === '/api/status') { json(response, 200, state); return; }
         if (request.method === 'GET' && requestUrl.pathname === '/api/qr.png') { if (!qrImageBuffer) { response.writeHead(404); response.end('QR code is not available'); return; } response.writeHead(200, { 'content-type': 'image/png', 'content-length': qrImageBuffer.length, 'cache-control': 'no-store' }); response.end(qrImageBuffer); return; }
         if (request.method === 'POST' && requestUrl.pathname === '/api/pairing') {
-            let body = ''; for await (const chunk of request) body += chunk;
+            let body = '';
+            for await (const chunk of request) {
+                body += chunk;
+                if (Buffer.byteLength(body) > 16 * 1024) {
+                    json(response, 413, { message: 'Request body is too large.' });
+                    request.destroy();
+                    return;
+                }
+            }
             try { const phoneNumber = String(JSON.parse(body).phone || '').replace(/\D/g, ''); if (phoneNumber.length < 7 || phoneNumber.length > 15) { json(response, 400, { message: 'Enter a valid international phone number (7–15 digits).' }); return; } const existing = [...sessions.values()].find(session => session.phoneNumber === phoneNumber || normalizePhone(session.sock?.user?.id) === phoneNumber); if (existing) { json(response, 409, { message: `+${phoneNumber} is already connected.` }); return; } const sessionKey = `account:${phoneNumber}`; const sessionDir = path.join(authDir, 'accounts', phoneNumber); state = { ...state, pairingCode: null, message: 'Starting a new WhatsApp session…' }; const pairingSocket = await startBot(sessionDir, sessionKey, phoneNumber, false); const code = await pairingSocket.requestPairingCode(phoneNumber); state = { ...state, pairingCode: code, message: 'Enter this code in WhatsApp → Linked devices → Link with phone number.' }; json(response, 200, { code, message: state.message }); } catch (error) { console.error('Could not generate a web pairing code:', error); json(response, error.code === 'ALREADY_CONNECTED' ? 409 : 500, { message: error.message || 'Could not generate a pairing code.' }); }
             return;
         }
         response.writeHead(404); response.end('Not found');
     };
-    const keyFile = process.env.WEB_TLS_KEY, certFile = process.env.WEB_TLS_CERT;
-    const secure = keyFile && certFile && fs.existsSync(keyFile) && fs.existsSync(certFile);
-    const server = secure ? createHttpsServer({ key: fs.readFileSync(keyFile), cert: fs.readFileSync(certFile) }, serverHandler) : createHttpServer(serverHandler);
+    const server = secure
+        ? createHttpsServer({
+            ...(hasPfxFile
+                ? { pfx: fs.readFileSync(pfxFile), passphrase: pfxPassword }
+                : { key: fs.readFileSync(keyFile), cert: fs.readFileSync(certFile) }),
+            minVersion: 'TLSv1.2'
+        }, serverHandler)
+        : createHttpServer(serverHandler);
     const protocol = secure ? 'https' : 'http', host = process.env.WEB_HOST || process.env.HOST || '0.0.0.0', port = Number(process.env.WEB_PORT || process.env.PORT || 3000);
     server.listen(port, host, () => console.log(`Pairing web server: ${protocol}://localhost:${port}`));
     return { update(patch) { state = { ...state, ...patch }; }, setQrImage(buffer) { qrImageBuffer = buffer; }, secure, server };

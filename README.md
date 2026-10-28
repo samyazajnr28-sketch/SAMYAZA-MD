@@ -58,6 +58,13 @@ WEB_PORT=443
 WEB_TLS_KEY=/path/to/private.key
 WEB_TLS_CERT=/path/to/certificate.crt</code></pre>
 
+<p>For a local Windows certificate bundle, you can use a PFX file instead:</p>
+
+<pre><code>WEB_TLS_PFX=C:\path\to\samyaza-local.pfx
+WEB_TLS_PFX_PASSWORD=your-pfx-password</code></pre>
+
+<p>HTTPS is required by default. For local development only, where a certificate is not available, set <code>WEB_TLS_REQUIRED=false</code>. Do not use that setting on a public server.</p>
+
 <p>Alternatively, place the detached web server behind Nginx, Caddy, or another HTTPS reverse proxy.</p>
 
 <h3>Vercel web page</h3>
